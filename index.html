@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Математика аралы — интерактивті ойындар</title>
+<style>
+:root{--navy:#17324a;--blue:#176b87;--gold:#f5bd4f;--cream:#fff9e9;--green:#27845d;--red:#b33d35}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;color:var(--navy);background:linear-gradient(180deg,#8de0e8 0%,#eaf6d5 100%);min-height:100vh}
+main{max-width:1000px;margin:auto;padding:18px}
+header{text-align:center;padding:16px 10px}
+h1{font-size:clamp(28px,5vw,44px);margin:0 0 8px}
+header p{font-weight:600;margin:8px 0 14px}
+.score{display:inline-block;background:#fff7df;border:2px solid #e8bd57;border-radius:24px;padding:10px 18px;font-weight:bold}
+.island{max-width:850px;min-height:300px;margin:18px auto;border:8px solid #efffff;border-radius:42px;background:radial-gradient(ellipse,#f8e6a3 0 40%,#e8c66e 41% 50%,#269eaa 51%);box-shadow:0 12px #238b98;display:flex;align-items:center;justify-content:center;padding:24px;position:relative}
+.island:before,.island:after{content:"🌴";position:absolute;top:14px;font-size:48px}
+.island:before{left:5%}.island:after{right:5%}
+.chests{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;width:100%;max-width:700px;z-index:1}
+.chest{border:3px solid #895020;border-radius:16px;background:linear-gradient(#d99a43,#a85f28);color:#fff8df;min-height:130px;padding:12px 8px;font-weight:bold;font-size:17px;cursor:pointer;box-shadow:0 7px #75401f;transition:transform .18s,filter .18s}
+.chest:hover{transform:translateY(-5px);filter:brightness(1.08)}
+.chest span{display:block;font-size:42px;margin-bottom:5px}.chest small{display:block;font-size:12px;margin-top:5px}
+.panel{display:none;background:var(--cream);border:3px solid #e9bd57;border-radius:22px;padding:22px;margin:22px auto;box-shadow:0 9px 25px #174b5b22}
+.panel.active{display:block}.panel h2{margin:0 0 8px}.muted{color:#58717e}
+button,input{font:inherit}.action{border:0;border-radius:11px;background:#12617a;color:white;padding:12px 18px;font-weight:bold;cursor:pointer;margin:5px;transition:transform .15s,opacity .15s}
+.action:hover{transform:translateY(-2px)}.action:disabled{opacity:.4;cursor:not-allowed;transform:none}.secondary{background:#71818a}
+.feedback{font-weight:bold;min-height:26px;margin:12px 0}.good{color:var(--green)}.bad{color:var(--red)}
+.barbg{height:14px;background:#e5e9dd;border-radius:20px;overflow:hidden;margin:12px 0}.bar{height:100%;width:0;background:#45a979;transition:width .3s}
+.choice{display:block;width:100%;border:2px solid #ddd4bf;border-radius:11px;background:white;padding:13px;margin:8px 0;text-align:left;font-weight:bold;cursor:pointer}
+.choice:hover{border-color:#e4b84c;background:#fffdf6}
+.task{background:white;border:1px solid #e5ddc9;border-radius:14px;padding:16px;margin:12px 0}
+input{max-width:100%;width:150px;padding:11px;border:2px solid #bdcdd2;border-radius:9px;font-size:18px}
+.gamebox{background:#eaf8ff;border-radius:18px;padding:18px;text-align:center}
+.big{font-size:clamp(30px,6vw,50px);font-weight:900;margin:12px}
+.clues{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:14px 0}
+.clue{background:#dce8eb;border:2px dashed #9bb4bd;border-radius:12px;padding:12px;min-height:84px}
+.clue.open{background:#fff1bd;border:2px solid #e4b84c}
+.clue b{display:block;margin-bottom:6px}
+.factory-top{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center}
+.factory-stats{display:flex;gap:8px;flex-wrap:wrap}
+.stat{background:#fff;border:2px solid #d9e6df;border-radius:12px;padding:9px 13px;font-weight:bold}
+.factory-scene{background:linear-gradient(#dff5ff 0 60%,#b7df9b 60%);border-radius:18px;padding:15px;margin:14px 0;text-align:center;overflow:hidden}
+.factory-building{font-size:clamp(45px,9vw,78px);line-height:1.2}
+.conveyor{height:68px;background:repeating-linear-gradient(90deg,#526b78 0 28px,#78909b 28px 34px);border-radius:12px;border:5px solid #3d5663;display:flex;align-items:center;justify-content:space-around;margin:8px 0;position:relative}
+.product{font-size:32px;background:#fff;border-radius:8px;padding:2px 8px;animation:bob 1s infinite alternate}
+@keyframes bob{to{transform:translateY(-5px)}}
+.order-card{background:#fff;border:2px solid #e8bd57;border-radius:16px;padding:16px;margin:12px 0}
+.order-number{font-size:25px;font-weight:900;color:#176b87}
+.factory-progress{height:16px;background:#dce7e5;border-radius:20px;overflow:hidden;margin:10px 0}
+.factory-progress>div{height:100%;width:0;background:linear-gradient(90deg,#48b77b,#b1d94b);transition:width .35s}
+.hidden{display:none!important}
+footer{text-align:center;color:#315b6a;padding:18px;font-size:13px}
+@media(max-width:600px){main{padding:10px}.island{min-height:250px;padding:12px 7px;border-radius:28px}.chests{gap:7px}.chest{font-size:14px;min-height:112px;padding:8px 4px}.chest span{font-size:32px}.chest small{font-size:10px}.panel{padding:14px}.clue{font-size:13px;padding:8px}.factory-top{align-items:flex-start}}
+</style>
+</head>
+<body>
+<main>
+<header>
+<h1>🏝️ Математика аралы</h1>
+<p>Сандықтарды аш, тапсырмаларды орында және математикалық шеберлігіңді көрсет!</p>
+<div class="score">⭐ Жалпы ұпай: <span id="score">0</span></div>
+</header>
+
+<section class="island">
+<div class="chests">
+<button class="chest" onclick="openPanel('a')"><span>📦</span>Формула құлпы<small>Формуланы тап</small></button>
+<button class="chest" onclick="openPanel('b')"><span>🏭</span>Тапсырыс фабрикасы<small>Өнім өндіріп, тапсырысты орында</small></button>
+<button class="chest" onclick="openPanel('c')"><span>🕵️</span>Жоғалған қазына<small>Құпия белгілерді тап</small></button>
+</div>
+</section>
+
+<section id="a" class="panel">
+<h2>📦 «Формула құлпы»</h2>
+<p class="muted">Үш дұрыс жауап беріп, сандықты аш!</p>
+<div class="task"><b>1. Өнімділік формуласы:</b>
+<button class="choice" onclick="aPick(0,0)">A = V × t</button><button class="choice" onclick="aPick(0,1)">V = A ÷ t</button><button class="choice" onclick="aPick(0,2)">t = A ÷ V</button></div>
+<div class="task"><b>2. Уақыт формуласы:</b>
+<button class="choice" onclick="aPick(1,0)">t = A ÷ V</button><button class="choice" onclick="aPick(1,1)">A = V × t</button><button class="choice" onclick="aPick(1,2)">V = A ÷ t</button></div>
+<div class="task"><b>3. Жұмыс көлемінің формуласы:</b>
+<button class="choice" onclick="aPick(2,0)">V = A ÷ t</button><button class="choice" onclick="aPick(2,1)">t = A ÷ V</button><button class="choice" onclick="aPick(2,2)">A = V × t</button></div>
+<div class="barbg"><div id="abar" class="bar"></div></div><div id="af" class="feedback">Құлыпты ашуға дайынсың ба?</div>
+<button class="action secondary" onclick="resetA()">Қайта бастау</button>
+</section>
+
+<section id="b" class="panel">
+<h2>🏭 «Тапсырыс фабрикасы»</h2>
+<p class="muted">Фабрикаға келген тапсырысты орында! Есепті дұрыс шығарсаң, конвейер іске қосылып, өнімдер дайын болады.</p>
+<div class="gamebox">
+<div class="factory-top">
+<div class="factory-stats"><div class="stat">⭐ Ұпай: <span id="factoryScore">0</span></div><div class="stat">📦 Өнім: <span id="productCount">0</span></div></div>
+<div class="stat">Тапсырыс: <span id="orderStep">1</span>/3</div>
+</div>
+<div class="factory-scene">
+<div class="factory-building" id="factoryBuilding">🏭</div>
+<div><b id="factoryStatus">Фабрика жұмысқа дайын!</b></div>
+<div class="conveyor"><span class="product">📦</span><span class="product">🧃</span><span class="product">🧸</span><span class="product">📦</span></div>
+</div>
+<div class="order-card">
+<div class="muted">КЛИЕНТТІҢ ТАПСЫРЫСЫ</div>
+<div class="order-number" id="orderTitle">1-тапсырыс</div>
+<p id="orderText"></p>
+<div class="factory-progress"><div id="factoryProgress"></div></div>
+<div id="factoryProgressText">Өндіріс басталған жоқ</div>
+</div>
+<div class="task">
+<h3 id="factoryQuestionTitle">🧮 Есепті шығар</h3>
+<p id="factoryQuestion"></p>
+<input id="factoryAnswer" type="number" inputmode="numeric" placeholder="Жауабың">
+<button class="action" id="factoryCheck" onclick="checkFactory()">Тексеру</button>
+<div id="factoryFeedback" class="feedback">Жауабыңды енгізіп, тексер!</div>
+</div>
+<button class="action" id="factoryNext" onclick="nextFactory()" disabled>Келесі тапсырыс →</button>
+<button class="action secondary" onclick="resetFactory()">Фабриканы қайта бастау</button>
+</div>
+</section>
+
+<section id="c" class="panel">
+<h2>🕵️ «Жоғалған қазынаның ізімен»</h2>
+<p class="muted">Детектив ретінде үш жасырын белгіні тап. Әр есепті шығарсаң, бір құпия ашылады.</p>
+<div class="clues">
+<div class="clue" id="clue0"><b>🔒 1-белгі</b>Жабық</div>
+<div class="clue" id="clue1"><b>🔒 2-белгі</b>Жабық</div>
+<div class="clue" id="clue2"><b>🔒 3-белгі</b>Жабық</div>
+</div>
+<div class="task" id="ctask"></div><div id="cf" class="feedback">Бірінші белгіні ізде!</div>
+<button class="action" id="cnext" onclick="nextClue()" disabled>Келесі белгіні іздеу →</button>
+<button class="action secondary" onclick="resetC()">Ойынды қайта бастау</button>
+</section>
+<footer>Мақсат — тапсырмаларды орындап, аралдың барлық құпиясын ашу!</footer>
+</main>
+<script>
+let score=0;
+function add(n){score+=n;document.getElementById('score').textContent=score}
+function openPanel(id){document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));document.getElementById(id).classList.add('active');document.getElementById(id).scrollIntoView({behavior:'smooth',block:'start'});if(id==='b'&&!factoryStarted){renderFactory()}}
+let aa=[false,false,false],ak=[1,0,2];
+function aPick(q,v){if(aa[q])return;let f=document.getElementById('af');if(v===ak[q]){aa[q]=true;add(1);f.textContent='Дұрыс! Құлыптың бір бөлігі ашылды. +1 ұпай';f.className='feedback good';document.getElementById('abar').style.width=aa.filter(Boolean).length/3*100+'%';if(aa.every(Boolean))f.textContent='🎉 Формула сандығы ашылды!'}else{f.textContent='Қате! Формуланы тағы бір ой елегінен өткіз.';f.className='feedback bad'}}
+function resetA(){aa=[false,false,false];document.getElementById('abar').style.width='0%';document.getElementById('af').textContent='Құлыпты ашуға дайынсың ба?';document.getElementById('af').className='feedback'}
+
+const factoryOrders=[
+{title:'1-тапсырыс: Ойыншықтар',order:'Клиент 4 қорап ойыншық сұрады. Әр қорапта 6 ойыншық болуы керек.',q:'Барлығы неше ойыншық дайындау керек?',a:24,products:24,hint:'4 × 6 = 24. Қорап санын әр қораптағы ойыншық санына көбейт.'},
+{title:'2-тапсырыс: Дәптерлер',order:'Мектепке 36 дәптер жеткізу керек. Бір бумада 9 дәптер бар.',q:'36 дәптерге неше бума қажет?',a:4,products:36,hint:'36 ÷ 9 = 4. Барлық дәптер санын бір бумадағы дәптер санына бөл.'},
+{title:'3-тапсырыс: Қаламдар',order:'Фабрика 7 сағат жұмыс істейді. Әр сағатта 8 қалам шығарады.',q:'Фабрика барлығы неше қалам шығарады?',a:56,products:56,hint:'7 × 8 = 56. Өнімділікті уақытқа көбейт.'}
+];
+let factoryIndex=0,factorySolved=false,factoryFinished=false,factoryStarted=false,factoryProducts=0,factoryPoints=0;
+function renderFactory(){
+ factoryStarted=true;let o=factoryOrders[factoryIndex];
+ document.getElementById('orderStep').textContent=factoryIndex+1;
+ document.getElementById('orderTitle').textContent=o.title;
+ document.getElementById('orderText').textContent=o.order;
+ document.getElementById('factoryQuestion').textContent=o.q;
+ document.getElementById('factoryQuestionTitle').textContent='🧮 '+(factoryIndex+1)+'-тапсырысты есепте';
+ document.getElementById('factoryAnswer').value='';
+ document.getElementById('factoryAnswer').disabled=false;
+ document.getElementById('factoryCheck').disabled=false;
+ document.getElementById('factoryNext').disabled=true;
+ document.getElementById('factoryNext').textContent=factoryIndex===2?'🏆 Фабриканы аяқтау':'Келесі тапсырыс →';
+ document.getElementById('factoryProgress').style.width='0%';
+ document.getElementById('factoryProgressText').textContent='Өндіріс басталған жоқ';
+ document.getElementById('factoryStatus').textContent='Жаңа тапсырыс келіп түсті!';
+ document.getElementById('factoryBuilding').textContent='🏭';
+ document.getElementById('factoryFeedback').textContent='Жауабыңды енгізіп, тексер!';
+ document.getElementById('factoryFeedback').className='feedback';
+ document.getElementById('factoryScore').textContent=factoryPoints;
+ document.getElementById('productCount').textContent=factoryProducts;
+}
+function checkFactory(){
+ if(factorySolved||factoryFinished)return;
+ const input=document.getElementById('factoryAnswer'),f=document.getElementById('factoryFeedback'),o=factoryOrders[factoryIndex];
+ if(input.value.trim()===''){f.textContent='Алдымен жауапты енгіз!';f.className='feedback bad';return}
+ if(Number(input.value)===o.a){
+  factorySolved=true;factoryPoints+=2;factoryProducts+=o.products;add(2);
+  document.getElementById('factoryScore').textContent=factoryPoints;
+  document.getElementById('productCount').textContent=factoryProducts;
+  document.getElementById('factoryProgress').style.width='100%';
+  document.getElementById('factoryProgressText').textContent='100% — тапсырыс орындалды!';
+  document.getElementById('factoryStatus').textContent='🎉 Өнімдер дайын! Конвейер тоқтады.';
+  document.getElementById('factoryBuilding').textContent='🏭✨';
+  f.textContent='Дұрыс! '+o.hint+' Тапсырыс орындалды. +2 ұпай';
+  f.className='feedback good';
+  input.disabled=true;document.getElementById('factoryCheck').disabled=true;
+  document.getElementById('factoryNext').disabled=false;
+ }else{
+  f.textContent='Әзірге қате. Қайта есептеп көр! Кеңес: '+o.hint;
+  f.className='feedback bad';
+ }
+}
+function nextFactory(){
+ if(!factorySolved)return;
+ if(factoryIndex<2){factoryIndex++;factorySolved=false;renderFactory()}
+ else{
+  factoryFinished=true;
+  document.getElementById('factoryQuestionTitle').textContent='🏆 ФАБРИКА ЖҰМЫСЫН АЯҚТАДЫ!';
+  document.getElementById('factoryQuestion').textContent='Үш тапсырыстың бәрін орындадың! Сен нағыз өндіріс шеберісің!';
+  document.getElementById('factoryAnswer').classList.add('hidden');
+  document.getElementById('factoryCheck').classList.add('hidden');
+  document.getElementById('factoryNext').disabled=true;
+  document.getElementById('factoryStatus').textContent='Барлық тапсырыс сәтті жеткізілді!';
+  document.getElementById('factoryBuilding').textContent='🏭🎊🏆';
+  document.getElementById('factoryProgress').style.width='100%';
+  document.getElementById('factoryProgressText').textContent='3/3 тапсырыс орындалды';
+  document.getElementById('factoryFeedback').textContent='Жарайсың! Фабрика миссиясы аяқталды!';
+  document.getElementById('factoryFeedback').className='feedback good';
+ }
+}
+function resetFactory(){
+ factoryIndex=0;factorySolved=false;factoryFinished=false;factoryStarted=true;factoryProducts=0;factoryPoints=0;
+ document.getElementById('factoryAnswer').classList.remove('hidden');
+ document.getElementById('factoryCheck').classList.remove('hidden');
+ renderFactory();
+}
+
+const clues=[
+{q:'1-белгі: 24 бөлшек 4 сағатта жасалды. Бір сағатта неше бөлшек жасалады?',a:6,secret:'Қазына бағы — пальма ағашының түбі.'},
+{q:'2-белгі: 30 бөлшекті жасау керек. Өнімділік сағатына 5 бөлшек. Неше сағат қажет?',a:6,secret:'Қазына кілті — ескі сандықтың жанында.'},
+{q:'3-белгі: Өнімділік сағатына 6 бөлшек. 3 сағатта неше бөлшек жасалады?',a:18,secret:'Қазына орны — үлкен жартастың артында!'}
+];
+let ci=0,solved=false,won=false;
+function renderClue(){let c=clues[ci];document.getElementById('ctask').innerHTML=`<b>${c.q}</b><p>Жауабыңды санмен жаз:</p><input id="cans" type="number" placeholder="Жауап"><button class="action" onclick="checkClue()">Белгіні ашу</button>`;document.getElementById('cnext').disabled=true}
+function checkClue(){if(solved||won)return;let input=document.getElementById('cans');if(input.value.trim()===''){document.getElementById('cf').textContent='Алдымен жауапты енгіз!';document.getElementById('cf').className='feedback bad';return}let v=Number(input.value),c=clues[ci],f=document.getElementById('cf');if(v===c.a){solved=true;add(1);let el=document.getElementById('clue'+ci);el.classList.add('open');el.innerHTML='<b>🔓 '+(ci+1)+'-белгі</b>'+c.secret;f.textContent='Дәл таптың! Құпия белгі ашылды. +1 ұпай';f.className='feedback good';document.getElementById('cnext').disabled=false}else{f.textContent='Бұл сан сәйкес келмейді. Есепті қайта тексер!';f.className='feedback bad'}}
+function nextClue(){if(!solved)return;if(ci<2){ci++;solved=false;renderClue();document.getElementById('cf').textContent='Келесі белгіні тап!';document.getElementById('cf').className='feedback'}else{won=true;document.getElementById('ctask').innerHTML='<h3>🏆 ҚАЗЫНА ТАБЫЛДЫ!</h3><p>Сен үш белгіні де тауып, аралдың құпиясын аштың!</p><div class="big">💎💰🏆</div>';document.getElementById('cf').textContent='Детективтік миссия сәтті аяқталды!';document.getElementById('cnext').disabled=true}}
+function resetC(){ci=0;solved=false;won=false;for(let i=0;i<3;i++){let e=document.getElementById('clue'+i);e.classList.remove('open');e.innerHTML='<b>🔒 '+(i+1)+'-белгі</b>Жабық'}document.getElementById('cf').textContent='Бірінші белгіні ізде!';document.getElementById('cf').className='feedback';renderClue()}
+renderClue();renderFactory();
+</script>
+</body>
+</html>
